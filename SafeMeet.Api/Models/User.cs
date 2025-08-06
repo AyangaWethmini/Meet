@@ -7,15 +7,15 @@ namespace Safemeet.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id {get; set;}
+        public string? Id {get; set;}
 
         [BsonElement("name")]
-        public string Name {get; set;}
+        public required string Name {get; set;}
 
         [BsonElement("email")]
-        public string Email {get; set;}
+        public required string Email {get; set;}
 
-        public string AuthProvider {get; set;}
+        public required string AuthProvider {get; set;}
     }
        
 }

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SafeMeet.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7f80f18bfcc152e4cf9770d0f425b9fcb957b3c5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+36e1c675d433e8d74dade2338a837357b91380f2")]
 [assembly: System.Reflection.AssemblyProductAttribute("SafeMeet.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SafeMeet.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

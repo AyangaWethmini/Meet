@@ -1,7 +1,16 @@
+using Safemeet.Services;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Http;
+using dotenv.net;
+
+// Load environment variables from .env file
+DotEnv.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton<MongoDbService>(); //database service
 	
@@ -20,6 +29,9 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+app.MapControllers();
+
 
 var summaries = new[]
 {
