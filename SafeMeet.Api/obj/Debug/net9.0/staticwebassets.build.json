@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "VxAGSbA8fCd7iHhORb4m9Ki02PwRhO+IXF2Sme+YR9k=",
+  "Source": "SafeMeet.Api",
+  "BasePath": "_content/SafeMeet.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
