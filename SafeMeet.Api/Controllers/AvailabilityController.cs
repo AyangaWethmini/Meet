@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
 using SafeMeet.Api.Models;
 using SafeMeet.Api.Services;
 using System.Security.Claims;
@@ -12,12 +11,12 @@ namespace SafeMeet.Api.Controllers
     [Authorize]
     public class AvailabilityController : ControllerBase
     {
-        private readonly IMongoCollection<AvailabilitySlot> _availabilitySlots;
+        private readonly AvailabilityService _availabilityService;
         private readonly UserService _userService;
 
-        public AvailabilityController(MongoDbService mongoDbService, UserService userService)
+        public AvailabilityController(AvailabilityService availabilityService, UserService userService)
         {
-            _availabilitySlots = mongoDbService.GetCollection<AvailabilitySlot>("AvailabilitySlots");
+            _availabilityService = availabilityService;
             _userService = userService;
         }
 
@@ -28,8 +27,8 @@ namespace SafeMeet.Api.Controllers
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
             slot.UserId = userId;
-            await _availabilitySlots.InsertOneAsync(slot);
-            return CreatedAtAction(nameof(GetById), new { id = slot.Id }, slot);
+            var createdSlot = await _availabilityService.CreateAvailabilitySlotAsync(slot);
+            return CreatedAtAction(nameof(GetById), new { id = createdSlot.Id }, createdSlot);
         }
 
         [HttpGet]
@@ -38,7 +37,7 @@ namespace SafeMeet.Api.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-            var slots = await _availabilitySlots.Find(s => s.UserId == userId).ToListAsync();
+            var slots = await _availabilityService.GetAvailabilityByUserIdAsync(userId);
             return Ok(slots);
         }
 
@@ -48,7 +47,7 @@ namespace SafeMeet.Api.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-            var slot = await _availabilitySlots.Find(s => s.Id == id && s.UserId == userId).FirstOrDefaultAsync();
+            var slot = await _availabilityService.GetAvailabilitySlotByIdAsync(id, userId);
             if (slot == null) return NotFound();
             return Ok(slot);
         }
@@ -56,7 +55,17 @@ namespace SafeMeet.Api.Controllers
         [HttpGet("user/{userid}")]
         public async Task<IActionResult> GetByUser(string userid)
         {
-            var slots = await _availabilitySlots.Find(s => s.UserId == userid).ToListAsync();
+            var slots = await _availabilityService.GetAvailabilityByUserIdAsync(userid);
+            return Ok(slots);
+        }
+
+        [HttpGet("daterange")]
+        public async Task<IActionResult> GetByDateRange([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var slots = await _availabilityService.GetAvailabilityByDateRangeAsync(userId, startDate, endDate);
             return Ok(slots);
         }
 
@@ -66,12 +75,12 @@ namespace SafeMeet.Api.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-            var existing = await _availabilitySlots.Find(s => s.Id == id && s.UserId == userId).FirstOrDefaultAsync();
+            var existing = await _availabilityService.GetAvailabilitySlotByIdAsync(id, userId);
             if (existing == null) return NotFound();
 
-            updatedSlot.Id = id;
-            updatedSlot.UserId = userId;
-            var result = await _availabilitySlots.ReplaceOneAsync(s => s.Id == id, updatedSlot);
+            var success = await _availabilityService.UpdateAvailabilitySlotAsync(id, userId, updatedSlot);
+            if (!success) return NotFound();
+
             return NoContent();
         }
 
@@ -81,8 +90,8 @@ namespace SafeMeet.Api.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-            var result = await _availabilitySlots.DeleteOneAsync(s => s.Id == id && s.UserId == userId);
-            if (result.DeletedCount == 0) return NotFound();
+            var success = await _availabilityService.DeleteAvailabilitySlotAsync(id, userId);
+            if (!success) return NotFound();
 
             return NoContent();
         }
