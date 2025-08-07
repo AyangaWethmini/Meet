@@ -1,7 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Safemeet.Models
+namespace SafeMeet.Api.Models
 {
     public class MeetingRequest{
         [BsonId]

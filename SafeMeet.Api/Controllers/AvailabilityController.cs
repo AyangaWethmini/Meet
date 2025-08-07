@@ -1,24 +1,33 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
-using Safemeet.Models;
-using Safemeet.Services;
+using SafeMeet.Api.Models;
+using SafeMeet.Api.Services;
+using System.Security.Claims;
 
-namespace Safemeet.Api.Controllers
+namespace SafeMeet.Api.Controllers
 {
     [ApiController]
     [Route("api/Availability")]
+    [Authorize]
     public class AvailabilityController : ControllerBase
     {
         private readonly IMongoCollection<AvailabilitySlot> _availabilitySlots;
+        private readonly UserService _userService;
 
-        public AvailabilityController(MongoDbService mongoDbService)
+        public AvailabilityController(MongoDbService mongoDbService, UserService userService)
         {
             _availabilitySlots = mongoDbService.GetCollection<AvailabilitySlot>("AvailabilitySlots");
+            _userService = userService;
         }
 
         [HttpPost]
         public async Task<IActionResult> Create(AvailabilitySlot slot)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            slot.UserId = userId;
             await _availabilitySlots.InsertOneAsync(slot);
             return CreatedAtAction(nameof(GetById), new { id = slot.Id }, slot);
         }
@@ -26,18 +35,21 @@ namespace Safemeet.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var slots = await _availabilitySlots.Find(_ => true).ToListAsync();
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var slots = await _availabilitySlots.Find(s => s.UserId == userId).ToListAsync();
             return Ok(slots);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
-            var slot = await _availabilitySlots.Find(s => s.Id == id).FirstOrDefaultAsync();
-            if (slot == null)
-            {
-                return NotFound();
-            }
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var slot = await _availabilitySlots.Find(s => s.Id == id && s.UserId == userId).FirstOrDefaultAsync();
+            if (slot == null) return NotFound();
             return Ok(slot);
         }
 
@@ -49,18 +61,29 @@ namespace Safemeet.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(string id, AvailabilitySlot slot)
+        public async Task<IActionResult> Update(string id, AvailabilitySlot updatedSlot)
         {
-            var result = await _availabilitySlots.ReplaceOneAsync(s => s.Id == id, slot);
-            if (result.MatchedCount == 0) return NotFound();
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var existing = await _availabilitySlots.Find(s => s.Id == id && s.UserId == userId).FirstOrDefaultAsync();
+            if (existing == null) return NotFound();
+
+            updatedSlot.Id = id;
+            updatedSlot.UserId = userId;
+            var result = await _availabilitySlots.ReplaceOneAsync(s => s.Id == id, updatedSlot);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            var result = await _availabilitySlots.DeleteOneAsync(s => s.Id == id);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var result = await _availabilitySlots.DeleteOneAsync(s => s.Id == id && s.UserId == userId);
             if (result.DeletedCount == 0) return NotFound();
+
             return NoContent();
         }
     }

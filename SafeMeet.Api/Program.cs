@@ -1,7 +1,8 @@
-using Safemeet.Services;
+using SafeMeet.Api.Services;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Http;
 using dotenv.net;
+using Microsoft.AspNetCore.Authentication;
 
 //For Authentication
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,25 +20,51 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton<MongoDbService>(); //database service
 builder.Services.AddSingleton<UserService>(); //user service registration
+builder.Services.AddSingleton<AvailabilityService>(); //availability service registration
+
 //google authentication
-builder.Services.Authentication(options => {
-    options.DefaultAuthenticateScheme = JwtBearerDEfaults.AuthenticationScheme;
-    options.DefaultChallangeScheme = "Google";
-}).AddGoogle(
+builder.Services.AddAuthentication(options =>
 {
-    options.ClientId = builder.configuration["Authentication:Google:ClientId"];
-    options.ClientSecret = builder.configuration["Authentication:Google:ClientSecret"];
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = "Google";
+})
+.AddGoogle(options =>
+{
+    var clientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID") ?? builder.Configuration["Authentication:Google:ClientId"];
+    var clientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET") ?? builder.Configuration["Authentication:Google:ClientSecret"];
+
+    if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
+    {
+        throw new InvalidOperationException("Google OAuth credentials not configured properly");
+    }
+
+    options.ClientId = clientId;
+    options.ClientSecret = clientSecret;
     options.SignInScheme = "Cookies";
-}).AddCookie("Cookies").AddJwtBearer(options => {
-    options.TokenValidationParameters = new TokenValidationParameters {
+    options.CallbackPath = "/signin-google";
+    options.SaveTokens = true;
+})
+.AddCookie("Cookies", options =>
+{
+    options.LoginPath = "/api/auth/login";
+    options.LogoutPath = "/api/auth/logout";
+})
+.AddJwtBearer(options =>
+{
+    var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? builder.Configuration["Authentication:Google:JwtSecret"];
+    if (string.IsNullOrEmpty(jwtSecret))
+    {
+        throw new InvalidOperationException("JWT secret not configured");
+    }
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
         ValidateIssuer = false,
-        ValidateAudiance = false,
+        ValidateAudience = false,
         ValidateLifetime = true,
-        ValidateIssuerSigninKey = true,
-        IssuerSigninKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("${JWT_SECRET}"))
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
     };
 });
-	
 
 var app = builder.Build();
 
@@ -54,8 +81,22 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
+// Add a route to handle the Google OAuth callback and redirect to our controller
+app.MapGet("/signin-google", async (HttpContext context) =>
+{
+    // This will trigger the cookie authentication scheme to process the Google auth
+    var result = await context.AuthenticateAsync("Cookies");
+    if (result.Succeeded)
+    {
+        // Redirect to our callback endpoint for JWT generation
+        return Results.Redirect("/api/auth/callback");
+    }
+    return Results.BadRequest("Authentication failed");
+});
 
 var summaries = new[]
 {
@@ -66,7 +107,7 @@ var summaries = new[]
 
 app.MapGet("/", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
+    var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
