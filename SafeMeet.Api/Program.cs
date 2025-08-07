@@ -3,6 +3,11 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Http;
 using dotenv.net;
 
+//For Authentication
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 // Load environment variables from .env file
 DotEnv.Load();
 
@@ -13,6 +18,25 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton<MongoDbService>(); //database service
+builder.Services.AddSingleton<UserService>(); //user service registration
+//google authentication
+builder.Services.Authentication(options => {
+    options.DefaultAuthenticateScheme = JwtBearerDEfaults.AuthenticationScheme;
+    options.DefaultChallangeScheme = "Google";
+}).AddGoogle(
+{
+    options.ClientId = builder.configuration["Authentication:Google:ClientId"];
+    options.ClientSecret = builder.configuration["Authentication:Google:ClientSecret"];
+    options.SignInScheme = "Cookies";
+}).AddCookie("Cookies").AddJwtBearer(options => {
+    options.TokenValidationParameters = new TokenValidationParameters {
+        ValidateIssuer = false,
+        ValidateAudiance = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigninKey = true,
+        IssuerSigninKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("${JWT_SECRET}"))
+    };
+});
 	
 
 var app = builder.Build();
