@@ -1,15 +1,18 @@
 using SafeMeet.Frontend.Models;
 using System.Net.Http.Json;
 
-namespace Safemeet.Frontend.Services
+
+namespace SafeMeet.Frontend.Services
+
 {
     public class MeetingRequestService
     {
         private readonly HttpClient _httpClient;
 
-        public MeetingRequestService(HttpClient httpClient)
+        public MeetingRequestService(IHttpClientFactory httpClientFactory)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClientFactory.CreateClient("SafeMeetApi");
+
         }
 
         public async Task<List<MeetingRequest>> GetUserRequestsAsync()

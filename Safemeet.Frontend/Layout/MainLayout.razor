@@ -1,47 +1,35 @@
-﻿@inherits LayoutComponentBase
-@inject AuthService authService
+@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+     <div class="page">
+         <div class="sidebar">
+             <NavMenu />
+         </div>
 
-    <main>
-        <div class="top-row">
-            <div class="top-row-content">
-                @if (authService.IsAuthenticated)
-                {
-                    <div class="user-info">
-                        <div class="user-avatar">
-                            <i class="bi bi-person-circle"></i>
-                        </div>
-                        <span class="welcome-text">Welcome, @authService.CurrentUser.Name</span>
-                        <button class="btn btn-outline-secondary btn-sm logout-btn" @onclick="Logout">
-                            <i class="bi bi-box-arrow-right"></i> Logout
-                        </button>
-                    </div>
-                }
-                else
-                {
-                    <div class="auth-section">
-                        <a href="https://localhost:5001/api/auth/login" target="_self" class="btn btn-primary login-btn">
-                            <i class="bi bi-google"></i> Sign in with Google
-                        </a>
-                    </div>
-                }
-            </div>
-        </div>
+         <main>
+             <div class="top-row px-4">
+                 @if (authService.IsAuthenticated)
+                 {
+                     <span>Welcome, @authService.CurrentUser.Name</span>
+                     <a href="#" @onclick="Logout">Logout</a>
+                 }
+                 else
+                 {
+                     <a href="https://localhost:5001/api/auth/login" target="_self">Login with Google</a>
+                 }
+             </div>
 
-        <article class="content">
-            @Body
-        </article>
-    </main>
-</div>
+             <article class="content px-4">
+                 @Body
+             </article>
+         </main>
+     </div>
 
-@code {
-    private void Logout()
-    {
-        authService.SetToken(null!, null!);
-        // Redirect to home or refresh page
-    }
-}
+     @code {
+         [Inject] private AuthService authService { get; set; }
+
+         private void Logout()
+         {
+             authService.SetToken(null, null);
+             // Redirect to home or refresh page
+         }
+     }

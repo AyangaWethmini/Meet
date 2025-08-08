@@ -1,0 +1,164 @@
+@page "/availability"
+     @inject AvailabilityService AvailabilityService
+     @inject AuthService AuthService
+
+     <h3>My Availability</h3>
+
+     @if (!AuthService.IsAuthenticated)
+     {
+         <p>Please <a href="https://localhost:5001/api/auth/login">log in</a> to manage your availability.</p>
+     }
+     else
+     {
+         <h4>Add Availability Slot</h4>
+         <EditForm Model="newSlot" OnValidSubmit="HandleCreateSlot">
+             <div>
+                 <label>Date:</label>
+                 <InputDate @bind-Value="newSlot.Date" />
+             </div>
+             <div>
+                 <label>Start Time (HH:mm):</label>
+                 <InputText @bind-Value="startTime" />
+             </div>
+             <div>
+                 <label>End Time (HH:mm):</label>
+                 <InputText @bind-Value="endTime" />
+             </div>
+             <div>
+                 <label>Preference Rating (1-5):</label>
+                 <InputNumber @bind-Value="newSlot.PreferenceRating" min="1" max="5" />
+             </div>
+             <button type="submit">Add Slot</button>
+         </EditForm>
+
+         <h4>My Slots</h4>
+         @if (slots == null)
+         {
+             <p>Loading...</p>
+         }
+         else if (!slots.Any())
+         {
+             <p>No availability slots found.</p>
+         }
+         else
+         {
+             <table class="table">
+                 <thead>
+                     <tr>
+                         <th>Date</th>
+                         <th>Start Time</th>
+                         <th>End Time</th>
+                         <th>Preference</th>
+                         <th>Actions</th>
+                     </tr>
+                 </thead>
+                 <tbody>
+                     @foreach (var slot in slots)
+                     {
+                         <tr>
+                             <td>@slot.Date.ToShortDateString()</td>
+                             <td>@slot.StartTime.ToString(@"hh\:mm")</td>
+                             <td>@slot.EndTime.ToString(@"hh\:mm")</td>
+                             <td>@slot.PreferenceRating</td>
+                             <td>
+                                 <button @onclick="() => EditSlot(slot)">Edit</button>
+                                 <button @onclick="() => DeleteSlot(slot.Id)">Delete</button>
+                             </td>
+                         </tr>
+                     }
+                 </tbody>
+             </table>
+         }
+
+         @if (editSlot != null)
+         {
+             <h4>Edit Slot</h4>
+             <EditForm Model="editSlot" OnValidSubmit="HandleUpdateSlot">
+                 <div>
+                     <label>Date:</label>
+                     <InputDate @bind-Value="editSlot.Date" />
+                 </div>
+                 <div>
+                     <label>Start Time (HH:mm):</label>
+                     <InputText @bind-Value="editStartTime" />
+                 </div>
+                 <div>
+                     <label>End Time (HH:mm):</label>
+                     <InputText @bind-Value="editEndTime" />
+                 </div>
+                 <div>
+                     <label>Preference Rating (1-5):</label>
+                     <InputNumber @bind-Value="editSlot.PreferenceRating" min="1" max="5" />
+                 </div>
+                 <button type="submit">Update Slot</button>
+                 <button @onclick="() => editSlot = null">Cancel</button>
+             </EditForm>
+         }
+     }
+
+     @code {
+         private List<AvailabilitySlot>? slots;
+         private AvailabilitySlot newSlot = new();
+         private string startTime = "09:00";
+         private string endTime = "10:00";
+         private AvailabilitySlot? editSlot;
+         private string? editStartTime;
+         private string? editEndTime;
+
+         protected override async Task OnInitializedAsync()
+         {
+             if (AuthService.IsAuthenticated)
+             {
+                 slots = await AvailabilityService.GetUserSlotsAsync();
+             }
+         }
+
+         private async Task HandleCreateSlot()
+         {
+             newSlot.StartTime = TimeSpan.Parse(startTime);
+             newSlot.EndTime = TimeSpan.Parse(endTime);
+             var createdSlot = await AvailabilityService.CreateSlotAsync(newSlot);
+             slots ??= new List<AvailabilitySlot>();
+             slots.Add(createdSlot);
+             newSlot = new AvailabilitySlot();
+             startTime = "09:00";
+             endTime = "10:00";
+         }
+
+         private void EditSlot(AvailabilitySlot slot)
+         {
+             editSlot = new AvailabilitySlot
+             {
+                 Id = slot.Id,
+                 Date = slot.Date,
+                 StartTime = slot.StartTime,
+                 EndTime = slot.EndTime,
+                 PreferenceRating = slot.PreferenceRating
+             };
+             editStartTime = slot.StartTime.ToString(@"hh\:mm");
+             editEndTime = slot.EndTime.ToString(@"hh\:mm");
+         }
+
+         private async Task HandleUpdateSlot()
+         {
+             if (editSlot == null || editStartTime == null || editEndTime == null || slots == null) return;
+             
+             editSlot.StartTime = TimeSpan.Parse(editStartTime);
+             editSlot.EndTime = TimeSpan.Parse(editEndTime);
+             await AvailabilityService.UpdateSlotAsync(editSlot.Id, editSlot);
+             var index = slots.FindIndex(s => s.Id == editSlot.Id);
+             if (index >= 0)
+             {
+                 slots[index] = editSlot;
+             }
+             editSlot = null;
+         }
+
+         private async Task DeleteSlot(string id)
+         {
+             if (slots == null) return;
+             
+             await AvailabilityService.DeleteSlotAsync(id);
+             slots.RemoveAll(s => s.Id == id);
+         }
+     }

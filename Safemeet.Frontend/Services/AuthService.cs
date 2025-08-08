@@ -1,7 +1,10 @@
+
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using SafeMeet.Frontend.Models;
 using System.Net.Http.Json;
 
-namespace Safemeet.Frontend.Services
+namespace SafeMeet.Frontend.Services
+
 {
     public class AuthService
     {
@@ -9,21 +12,30 @@ namespace Safemeet.Frontend.Services
         private string _token;
         private User _currentUser;
 
-        public AuthService(HttpClient httpClient)
+
+        public AuthService(IHttpClientFactory httpClientFactory)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClientFactory.CreateClient("SafeMeetApi");
+
         }
 
         public async Task<User> LoginAsync()
         {
-            return null; //implement the correct logic to redirect to backend api 
+
+            // Redirect to API login endpoint
+            // This will be handled by a button click in the UI
+            return null; // Placeholder, actual login handled via redirect
+
         }
 
         public void SetToken(string token, User user)
         {
             _token = token;
             _currentUser = user;
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
         }
 
         public User CurrentUser => _currentUser;

@@ -1,28 +1,30 @@
 @page "/auth-callback"
-@inject AuthService AuthService
-@inject NavigationManager NavigationManager
-@inject HttpClient HttpClient
 
-<h3>Processing Login...</h3>
+     @inject AuthService AuthService
+     @inject NavigationManager NavigationManager
+     @inject IHttpClientFactory HttpClientFactory
 
-@code {
-    protected override async Task OnInitializedAsync()
-    {
-        var response = await HttpClient.GetFromJsonAsync<AuthResponse>("/auth/callback");
-        if (response != null)
-        {
-            AuthService.SetToken(response.Token, response.User);
-            NavigationManager.NavigateTo("/");
-        }
-        else
-        {
-            NavigationManager.NavigateTo("/error");
-        }
-    }
+     <h3>Processing Login...</h3>
 
-    private class AuthResponse
-    {
-        public string Token { get; set; }
-        public User User { get; set; }
-    }
-}
+     @code {
+         protected override async Task OnInitializedAsync()
+         {
+             var httpClient = HttpClientFactory.CreateClient("SafeMeetApi");
+             var response = await httpClient.GetFromJsonAsync<AuthResponse>("/auth/callback");
+             if (response != null)
+             {
+                 AuthService.SetToken(response.Token, response.User);
+                 NavigationManager.NavigateTo("/");
+             }
+             else
+             {
+                 NavigationManager.NavigateTo("/error");
+             }
+         }
+
+         private class AuthResponse
+         {
+             public string Token { get; set; }
+             public User User { get; set; }
+         }
+     }
