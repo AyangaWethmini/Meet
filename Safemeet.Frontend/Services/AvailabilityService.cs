@@ -1,15 +1,20 @@
 using SafeMeet.Frontend.Models;
 using System.Net.Http.Json;
 
+
 namespace SafeMeet.Frontend.Services
+
+
 {
     public class AvailabilityService
     {
         private readonly HttpClient _httpClient;
 
+
         public AvailabilityService(IHttpClientFactory httpClientFactory)
         {
             _httpClient = httpClientFactory.CreateClient("SafeMeetApi");
+
         }
 
         public async Task<List<AvailabilitySlot>> GetUserSlotsAsync()

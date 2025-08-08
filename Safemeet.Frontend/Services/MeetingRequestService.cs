@@ -1,7 +1,9 @@
 using SafeMeet.Frontend.Models;
 using System.Net.Http.Json;
 
+
 namespace SafeMeet.Frontend.Services
+
 {
     public class MeetingRequestService
     {
@@ -10,6 +12,7 @@ namespace SafeMeet.Frontend.Services
         public MeetingRequestService(IHttpClientFactory httpClientFactory)
         {
             _httpClient = httpClientFactory.CreateClient("SafeMeetApi");
+
         }
 
         public async Task<List<MeetingRequest>> GetUserRequestsAsync()
