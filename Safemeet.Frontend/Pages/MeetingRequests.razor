@@ -1,0 +1,196 @@
+@page "/meeting-requests"
+     @inject MeetingRequestService MeetingRequestService
+     @inject AuthService AuthService
+
+     <h3>My Meeting Requests</h3>
+
+     @if (!AuthService.IsAuthenticated)
+     {
+         <p>Please <a href="https://localhost:5001/api/auth/login">log in</a> to manage your meeting requests.</p>
+     }
+     else
+     {
+         <h4>Create Meeting Request</h4>
+         <EditForm Model="newRequest" OnValidSubmit="HandleCreateRequest">
+             <div>
+                 <label>Title:</label>
+                 <InputText @bind-Value="newRequest.Title" />
+             </div>
+             <div>
+                 <label>Agenda:</label>
+                 <InputTextArea @bind-Value="newRequest.Agenda" />
+             </div>
+             <div>
+                 <label>Attendee Emails (comma-separated):</label>
+                 <InputText @bind-Value="attendeeEmails" />
+             </div>
+             <div>
+                 <label>Start Date:</label>
+                 <InputDate @bind-Value="newRequest.PreferredDateStart" />
+             </div>
+             <div>
+                 <label>End Date:</label>
+                 <InputDate @bind-Value="newRequest.PreferredDateEnd" />
+             </div>
+             <div>
+                 <label>Preferred Start Time (HH:mm):</label>
+                 <InputText @bind-Value="preferredStartTime" />
+             </div>
+             <div>
+                 <label>Preferred End Time (HH:mm):</label>
+                 <InputText @bind-Value="preferredEndTime" />
+             </div>
+             <button type="submit">Create Request</button>
+         </EditForm>
+
+         <h4>My Requests</h4>
+         @if (requests == null)
+         {
+             <p>Loading...</p>
+         }
+         else if (!requests.Any())
+         {
+             <p>No meeting requests found.</p>
+         }
+         else
+         {
+             <table class="table">
+                 <thead>
+                     <tr>
+                         <th>Title</th>
+                         <th>Agenda</th>
+                         <th>Attendees</th>
+                         <th>Dates</th>
+                         <th>Times</th>
+                         <th>Actions</th>
+                     </tr>
+                 </thead>
+                 <tbody>
+                     @foreach (var request in requests)
+                     {
+                         <tr>
+                             <td>@request.Title</td>
+                             <td>@request.Agenda</td>
+                             <td>@string.Join(", ", request.Attendees)</td>
+                             <td>@request.PreferredDateStart.ToShortDateString() - @request.PreferredDateEnd.ToShortDateString()</td>
+                             <td>@request.PreferredTimeStart.ToString(@"hh\:mm") - @request.PreferredTimeEnd.ToString(@"hh\:mm")</td>
+                             <td>
+                                 <button @onclick="() => EditRequest(request)">Edit</button>
+                                 <button @onclick="() => DeleteRequest(request.Id)">Delete</button>
+                             </td>
+                         </tr>
+                     }
+                 </tbody>
+             </table>
+         }
+
+         @if (editRequest != null)
+         {
+             <h4>Edit Meeting Request</h4>
+             <EditForm Model="editRequest" OnValidSubmit="HandleUpdateRequest">
+                 <div>
+                     <label>Title:</label>
+                     <InputText @bind-Value="editRequest.Title" />
+                 </div>
+                 <div>
+                     <label>Agenda:</label>
+                     <InputTextArea @bind-Value="editRequest.Agenda" />
+                 </div>
+                 <div>
+                     <label>Attendee Emails (comma-separated):</label>
+                     <InputText @bind-Value="editAttendeeEmails" />
+                 </div>
+                 <div>
+                     <label>Start Date:</label>
+                     <InputDate @bind-Value="editRequest.PreferredDateStart" />
+                 </div>
+                 <div>
+                     <label>End Date:</label>
+                     <InputDate @bind-Value="editRequest.PreferredDateEnd" />
+                 </div>
+                 <div>
+                     <label>Preferred Start Time (HH:mm):</label>
+                     <InputText @bind-Value="editPreferredStartTime" />
+                 </div>
+                 <div>
+                     <label>Preferred End Time (HH:mm):</label>
+                     <InputText @bind-Value="editPreferredEndTime" />
+                 </div>
+                 <button type="submit">Update Request</button>
+                 <button @onclick="() => editRequest = null">Cancel</button>
+             </EditForm>
+         }
+     }
+
+     @code {
+         private List<MeetingRequest> requests = new();
+         private MeetingRequest newRequest = new();
+         private string attendeeEmails = string.Empty;
+         private string preferredStartTime = "09:00";
+         private string preferredEndTime = "17:00";
+         private MeetingRequest? editRequest;
+         private string editAttendeeEmails = string.Empty;
+         private string editPreferredStartTime = string.Empty;
+         private string editPreferredEndTime = string.Empty;
+
+         protected override async Task OnInitializedAsync()
+         {
+             if (AuthService.IsAuthenticated)
+             {
+                 requests = await MeetingRequestService.GetUserRequestsAsync();
+             }
+         }
+
+         private async Task HandleCreateRequest()
+         {
+             newRequest.Attendees = attendeeEmails.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                 .Select(e => e.Trim()).ToList();
+             newRequest.PreferredTimeStart = TimeSpan.Parse(preferredStartTime);
+             newRequest.PreferredTimeEnd = TimeSpan.Parse(preferredEndTime);
+             var createdRequest = await MeetingRequestService.CreateRequestAsync(newRequest);
+             requests.Add(createdRequest);
+             newRequest = new MeetingRequest();
+             attendeeEmails = "";
+             preferredStartTime = "09:00";
+             preferredEndTime = "17:00";
+         }
+
+         private void EditRequest(MeetingRequest request)
+         {
+             editRequest = new MeetingRequest
+             {
+                 Id = request.Id,
+                 Title = request.Title,
+                 Agenda = request.Agenda,
+                 Attendees = new List<string>(request.Attendees),
+                 PreferredDateStart = request.PreferredDateStart,
+                 PreferredDateEnd = request.PreferredDateEnd,
+                 PreferredTimeStart = request.PreferredTimeStart,
+                 PreferredTimeEnd = request.PreferredTimeEnd
+             };
+             editAttendeeEmails = string.Join(", ", request.Attendees);
+             editPreferredStartTime = request.PreferredTimeStart.ToString(@"hh\:mm");
+             editPreferredEndTime = request.PreferredTimeEnd.ToString(@"hh\:mm");
+         }
+
+         private async Task HandleUpdateRequest()
+         {
+             if (editRequest != null)
+             {
+                 editRequest.Attendees = editAttendeeEmails.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                     .Select(e => e.Trim()).ToList();
+                 editRequest.PreferredTimeStart = TimeSpan.Parse(editPreferredStartTime);
+                 editRequest.PreferredTimeEnd = TimeSpan.Parse(editPreferredEndTime);
+                 await MeetingRequestService.UpdateRequestAsync(editRequest.Id, editRequest);
+                 var index = requests.FindIndex(r => r.Id == editRequest.Id);
+                 requests[index] = editRequest;
+                 editRequest = null;
+             }
+         }
+
+         private async Task DeleteRequest(string id)
+         {
+             await MeetingRequestService.DeleteRequestAsync(id);
+             requests.RemoveAll(r => r.Id == id);
+         }
+     }

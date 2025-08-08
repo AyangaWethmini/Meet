@@ -1,16 +1,35 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+     <div class="page">
+         <div class="sidebar">
+             <NavMenu />
+         </div>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+         <main>
+             <div class="top-row px-4">
+                 @if (authService.IsAuthenticated)
+                 {
+                     <span>Welcome, @authService.CurrentUser.Name</span>
+                     <a href="#" @onclick="Logout">Logout</a>
+                 }
+                 else
+                 {
+                     <a href="https://localhost:5001/api/auth/login" target="_self">Login with Google</a>
+                 }
+             </div>
+
+             <article class="content px-4">
+                 @Body
+             </article>
+         </main>
+     </div>
+
+     @code {
+         [Inject] private AuthService authService { get; set; }
+
+         private void Logout()
+         {
+             authService.SetToken(null, null);
+             // Redirect to home or refresh page
+         }
+     }

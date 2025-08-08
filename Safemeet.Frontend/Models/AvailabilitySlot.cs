@@ -1,5 +1,5 @@
 namespace SafeMeet.Frontend.Models
-       {
+{
            public class AvailabilitySlot
            {
                public string Id { get; set; }
