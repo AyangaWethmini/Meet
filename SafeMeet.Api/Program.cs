@@ -66,6 +66,9 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+
+builder.Services.AddCors();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -73,6 +76,10 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseCors(builder => builder.WithOrigins("http://localhost:5287").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+
+
 
 //app.UseHttpsRedirection();
 
