@@ -7,11 +7,10 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]) });
-
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:5001") });
 
 //services
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AvailabilityService>();
-builder.Services.AddScoped<MeetingRequesteService>();
+builder.Services.AddScoped<MeetingRequestService>();
 await builder.Build().RunAsync();

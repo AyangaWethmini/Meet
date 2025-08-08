@@ -1,0 +1,28 @@
+@page "/auth-callback"
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+
+<h3>Processing Login...</h3>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await HttpClient.GetFromJsonAsync<AuthResponse>("/auth/callback");
+        if (response != null)
+        {
+            AuthService.SetToken(response.Token, response.User);
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/error");
+        }
+    }
+
+    private class AuthResponse
+    {
+        public string Token { get; set; }
+        public User User { get; set; }
+    }
+}

@@ -1,0 +1,330 @@
+@page "/meeting-requests"
+@inject MeetingRequestService MeetingRequestService
+@inject AuthService AuthService
+
+<div class="meeting-requests-container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-calendar-event"></i>
+            Meeting Requests
+        </h1>
+        <p class="page-subtitle">Manage and organize your meeting requests</p>
+    </div>
+
+    @if (!AuthService.IsAuthenticated)
+    {
+        <div class="auth-prompt card">
+            <div class="card-body text-center">
+                <i class="bi bi-lock icon-large"></i>
+                <h3>Authentication Required</h3>
+                <p>Please sign in to manage your meeting requests.</p>
+                <a href="https://localhost:5001/api/auth/login" class="btn btn-primary">
+                    <i class="bi bi-google"></i>
+                    Sign in with Google
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Create Meeting Request Section -->
+        <div class="create-section card">
+            <div class="card-header">
+                <h4><i class="bi bi-plus-circle"></i> Create New Meeting Request</h4>
+            </div>
+            <div class="card-body">
+                <EditForm Model="newRequest" OnValidSubmit="HandleCreateRequest">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="bi bi-text-left"></i>
+                                Title
+                            </label>
+                            <InputText @bind-Value="newRequest.Title" class="form-control"
+                                placeholder="Enter meeting title" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="bi bi-list-ul"></i>
+                                Agenda
+                            </label>
+                            <InputTextArea @bind-Value="newRequest.Agenda" class="form-control" rows="3"
+                                placeholder="Meeting agenda and details" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="bi bi-people"></i>
+                                Invitee Emails
+                            </label>
+                            <InputText @bind-Value="Attendees" class="form-control"
+                                placeholder="email1@example.com, email2@example.com" />
+                            <small class="form-text">Separate multiple emails with commas</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="bi bi-calendar-date"></i>
+                                    Start Date
+                                </label>
+                                <InputDate @bind-Value="newRequest.PreferredDateStart" class="form-control" />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="bi bi-calendar-date"></i>
+                                    End Date
+                                </label>
+                                <InputDate @bind-Value="newRequest.PreferredDateEnd" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="bi bi-clock"></i>
+                                    Start Time
+                                </label>
+                                <InputText @bind-Value="preferredStartTime" class="form-control" placeholder="09:00" />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="bi bi-clock"></i>
+                                    End Time
+                                </label>
+                                <InputText @bind-Value="preferredEndTime" class="form-control" placeholder="17:00" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i>
+                            Create Request
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+
+        <!-- Meeting Requests List -->
+        <div class="requests-section card">
+            <div class="card-header">
+                <h4><i class="bi bi-list-check"></i> Your Meeting Requests</h4>
+            </div>
+            <div class="card-body">
+                @if (requests == null)
+                {
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Loading your meeting requests...</p>
+                    </div>
+                }
+                else if (!requests.Any())
+                {
+                    <div class="empty-state">
+                        <i class="bi bi-calendar-x icon-large"></i>
+                        <h5>No Meeting Requests</h5>
+                        <p>You haven't created any meeting requests yet. Create your first one above!</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="requests-grid">
+                        @foreach (var request in requests)
+                        {
+                            <div class="request-card">
+                                <div class="request-header">
+                                    <h5 class="request-title">@request.Title</h5>
+                                    <div class="request-actions">
+                                        <button @onclick="() => EditRequest(request)" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button @onclick="() => DeleteRequest(request.Id)" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="request-content">
+                                    <p class="request-agenda">@request.Agenda</p>
+
+                                    <div class="request-details">
+                                        <div class="detail-item">
+                                            <i class="bi bi-people"></i>
+                                            <span>@string.Join(", ", request.Attendees)</span>
+                                        </div>
+
+                                        <div class="detail-item">
+                                            <i class="bi bi-calendar-range"></i>
+                                            <span>@request.PreferredDateStart.ToShortDateString() -
+                                                @request.PreferredDateEnd.ToShortDateString()</span>
+                                        </div>
+
+                                        <div class="detail-item">
+                                            <i class="bi bi-clock"></i>
+                                            <span>@request.PreferredTimeStart.ToString(@"hh\:mm") -
+                                                @request.PreferredTimeEnd.ToString(@"hh\:mm")</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        @if (editRequest != null)
+        {
+            <div class="modal-overlay" @onclick="() => editRequest = null!">
+                <div class="modal-content" @onclick:stopPropagation="true">
+                    <div class="modal-header">
+                        <h4><i class="bi bi-pencil-square"></i> Edit Meeting Request</h4>
+                        <button @onclick="() => editRequest = null!" class="btn-close">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <EditForm Model="editRequest" OnValidSubmit="HandleUpdateRequest">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Title</label>
+                                    <InputText @bind-Value="editRequest.Title" class="form-control" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Agenda</label>
+                                    <InputTextArea @bind-Value="editRequest.Agenda" class="form-control" rows="3" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Invitee Emails</label>
+                                    <InputText @bind-Value="editAttendees" class="form-control" />
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Start Date</label>
+                                        <InputDate @bind-Value="editRequest.PreferredDateStart" class="form-control" />
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">End Date</label>
+                                        <InputDate @bind-Value="editRequest.PreferredDateEnd" class="form-control" />
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Start Time</label>
+                                        <InputText @bind-Value="editPreferredStartTime" class="form-control" />
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">End Time</label>
+                                        <InputText @bind-Value="editPreferredEndTime" class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i>
+                                    Update Request
+                                </button>
+                                <button type="button" @onclick="() => editRequest = null!" class="btn btn-outline-secondary">
+                                    Cancel
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<MeetingRequest> requests = new();
+    private MeetingRequest newRequest = new() { Attendees = new List<string>() };
+    private string Attendees = "";
+    private string preferredStartTime = "09:00";
+    private string preferredEndTime = "17:00";
+    private MeetingRequest? editRequest;
+    private string editAttendees = "";
+    private string editPreferredStartTime = "";
+    private string editPreferredEndTime = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthService.IsAuthenticated)
+        {
+            requests = await MeetingRequestService.GetUserRequestsAsync() ?? new List<MeetingRequest>();
+        }
+    }
+
+    private async Task HandleCreateRequest()
+    {
+        newRequest.Attendees = Attendees.Split(',', StringSplitOptions.RemoveEmptyEntries)
+        .Select(e => e.Trim()).ToList();
+        newRequest.PreferredTimeStart = TimeSpan.Parse(preferredStartTime);
+        newRequest.PreferredTimeEnd = TimeSpan.Parse(preferredEndTime);
+        var createdRequest = await MeetingRequestService.CreateRequestAsync(newRequest);
+        if (createdRequest != null)
+        {
+            requests.Add(createdRequest);
+        }
+        newRequest = new MeetingRequest { Attendees = new List<string>() };
+        Attendees = "";
+        preferredStartTime = "09:00";
+        preferredEndTime = "17:00";
+    }
+
+    private void EditRequest(MeetingRequest request)
+    {
+        editRequest = new MeetingRequest
+        {
+            Id = request.Id,
+            Title = request.Title,
+            Agenda = request.Agenda,
+            Attendees = new List<string>(request.Attendees),
+            PreferredDateStart = request.PreferredDateStart,
+            PreferredDateEnd = request.PreferredDateEnd,
+            PreferredTimeStart = request.PreferredTimeStart,
+            PreferredTimeEnd = request.PreferredTimeEnd
+        };
+        editAttendees = string.Join(", ", request.Attendees);
+        editPreferredStartTime = request.PreferredTimeStart.ToString(@"hh\:mm");
+        editPreferredEndTime = request.PreferredTimeEnd.ToString(@"hh\:mm");
+    }
+
+    private async Task HandleUpdateRequest()
+    {
+        if (editRequest != null)
+        {
+            editRequest.Attendees = editAttendees.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(e => e.Trim()).ToList();
+            editRequest.PreferredTimeStart = TimeSpan.Parse(editPreferredStartTime);
+            editRequest.PreferredTimeEnd = TimeSpan.Parse(editPreferredEndTime);
+            await MeetingRequestService.UpdateRequestAsync(editRequest.Id, editRequest);
+            var index = requests.FindIndex(r => r.Id == editRequest.Id);
+            if (index >= 0)
+            {
+                requests[index] = editRequest;
+            }
+            editRequest = null;
+        }
+    }
+
+    private async Task DeleteRequest(string id)
+    {
+        await MeetingRequestService.DeleteRequestAsync(id);
+        requests.RemoveAll(r => r.Id == id);
+    }
+}

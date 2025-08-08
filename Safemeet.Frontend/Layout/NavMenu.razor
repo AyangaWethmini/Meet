@@ -1,28 +1,45 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Safemeet.Frontend</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
+﻿<div class="nav-header">
+    <div class="brand-container">
+        <div class="brand-icon">
+            <i class="bi bi-calendar-check"></i>
+        </div>
+        <h1 class="brand-title">OptiMeet</h1>
+        <button title="Navigation menu" class="nav-toggle" @onclick="ToggleNavMenu">
+            <i class="bi bi-list"></i>
         </button>
     </div>
 </div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
+<div class="@NavMenuCssClass nav-scrollable">
+    <nav class="nav-menu">
+        <div class="nav-section">
+            <div class="nav-item">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <i class="bi bi-house-door"></i>
+                    <span class="nav-text">Home</span>
+                </NavLink>
+            </div>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="availability">
+                    <i class="bi bi-calendar-week"></i>
+                    <span class="nav-text">My Availability</span>
+                </NavLink>
+            </div>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="meeting-requests">
+                    <i class="bi bi-people"></i>
+                    <span class="nav-text">My Meeting Requests</span>
+                </NavLink>
+            </div>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
+
+        <div class="nav-section nav-section-bottom">
+            <div class="nav-item">
+                <NavLink class="nav-link" href="settings">
+                    <i class="bi bi-gear"></i>
+                    <span class="nav-text">Settings</span>
+                </NavLink>
+            </div>
         </div>
     </nav>
 </div>

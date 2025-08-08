@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SafeMeet.Api.Controllers
 {
@@ -45,6 +46,7 @@ namespace SafeMeet.Api.Controllers
         }
 
         [HttpGet("callback")]
+        [AllowAnonymous]
         public async Task<IActionResult> Callback()
         {
             // The authentication middleware will have already processed the callback
