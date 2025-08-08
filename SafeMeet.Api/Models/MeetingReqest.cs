@@ -8,13 +8,13 @@ namespace SafeMeet.Api.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id {get; set;}
 
-        public required string CreatedBy {get; set;}
+        public string CreatedBy {get; set;}
 
-        public required string Title {get; set;}
+        public  string Title {get; set;}
 
-        public required string Agenda {get; set;}
+        public string Agenda {get; set;}
 
-        public required List<string> Attendees {get; set;}
+        public List<string> Attendees {get; set;}
 
         public DateTime PreferredDateStart {get; set;}
 

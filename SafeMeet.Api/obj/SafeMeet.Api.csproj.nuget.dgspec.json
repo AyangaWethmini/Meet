@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\User\\Desktop\\learning_projects\\dotnet\\OptiMeet\\SafeMeet.Api\\SafeMeet.Api.csproj": {}
+    "C:\\Users\\User\\Desktop\\learning_projects\\dotnet\\OptiMeet\\Safemeet.Api\\SafeMeet.Api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\User\\Desktop\\learning_projects\\dotnet\\OptiMeet\\SafeMeet.Api\\SafeMeet.Api.csproj": {
+    "C:\\Users\\User\\Desktop\\learning_projects\\dotnet\\OptiMeet\\Safemeet.Api\\SafeMeet.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\User\\Desktop\\learning_projects\\dotnet\\OptiMeet\\SafeMeet.Api\\SafeMeet.Api.csproj",
+        "projectUniqueName": "C:\\Users\\User\\Desktop\\learning_projects\\dotnet\\OptiMeet\\Safemeet.Api\\SafeMeet.Api.csproj",
         "projectName": "SafeMeet.Api",
-        "projectPath": "C:\\Users\\User\\Desktop\\learning_projects\\dotnet\\OptiMeet\\SafeMeet.Api\\SafeMeet.Api.csproj",
+        "projectPath": "C:\\Users\\User\\Desktop\\learning_projects\\dotnet\\OptiMeet\\Safemeet.Api\\SafeMeet.Api.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\User\\Desktop\\learning_projects\\dotnet\\OptiMeet\\SafeMeet.Api\\obj\\",
+        "outputPath": "C:\\Users\\User\\Desktop\\learning_projects\\dotnet\\OptiMeet\\Safemeet.Api\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -48,6 +48,10 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "FluentValidation.AspNetCore": {
+              "target": "Package",
+              "version": "[11.3.1, )"
+            },
             "Microsoft.AspNetCore.Authentication.Google": {
               "target": "Package",
               "version": "[9.0.8, )"

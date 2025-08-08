@@ -58,3 +58,6 @@ C:\Users\User\Desktop\learning_projects\dotnet\OptiMeet\SafeMeet.Api\bin\Debug\n
 C:\Users\User\Desktop\learning_projects\dotnet\OptiMeet\SafeMeet.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 C:\Users\User\Desktop\learning_projects\dotnet\OptiMeet\SafeMeet.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Tokens.dll
 C:\Users\User\Desktop\learning_projects\dotnet\OptiMeet\SafeMeet.Api\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Users\User\Desktop\learning_projects\dotnet\OptiMeet\Safemeet.Api\bin\Debug\net9.0\FluentValidation.dll
+C:\Users\User\Desktop\learning_projects\dotnet\OptiMeet\Safemeet.Api\bin\Debug\net9.0\FluentValidation.AspNetCore.dll
+C:\Users\User\Desktop\learning_projects\dotnet\OptiMeet\Safemeet.Api\bin\Debug\net9.0\FluentValidation.DependencyInjectionExtensions.dll
